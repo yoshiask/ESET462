@@ -74,6 +74,50 @@ def tdom_to_tf(tdom_func: Function) -> Function:
     return tf
 
 
-def tf_to_sdom(tf: Function) -> Add:
-    print(tf)
-    return None
+def tf_to_tdom(tf: Function) -> Eq:
+    if not tf.is_Mul:
+        raise ValueError()
+
+    a, b = tf.args
+
+    if a.is_Pow and a.args[1] < 0:
+        denominator = 1 / a
+        numerator = b
+    else:
+        denominator = 1 / b
+        numerator = a
+
+    numerator = numerator.expand()
+    denominator = denominator.expand()
+
+    def _sdom_to_tdom(term: Basic, control: Function, tdom_terms: list[Basic]):
+        if term.is_Add:
+            for subterm in term.args:
+                _sdom_to_tdom(subterm, control, tdom_terms)
+        else:
+            coeff = sympify(1)
+            degree = sympify(0)
+            if term.is_Number:
+                coeff = term
+            else:
+                if term.is_Mul:
+                    coeff, term = term.args
+                    degree = 1
+                if term.is_Pow:
+                    degree = term.args[1]
+
+            tdom_term = coeff * diff_n(control, degree)
+            tdom_terms.append(tdom_term)
+
+        return tdom_terms
+
+    y_terms = []
+    _sdom_to_tdom(denominator, yt, y_terms)
+    y_t = Add(*y_terms)
+
+    x_terms = []
+    _sdom_to_tdom(numerator, xt, x_terms)
+    x_t = Add(*x_terms)
+
+    sys_t = Eq(x_t, y_t)
+    return sys_t
