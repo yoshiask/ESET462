@@ -1,5 +1,5 @@
-﻿from sympy import collect, diff, sympify, Add
-from sympy import Symbol, Function
+﻿from sympy import collect, diff, sympify
+from sympy import Basic, Symbol, Function, Add, Eq
 
 t: Symbol = Symbol('t')
 s: Symbol = Symbol('s')
@@ -26,7 +26,7 @@ def diff_n(f: Function, n: int) -> Function:
     return result
 
 
-def diffeq_to_sdom(sys: Function) -> Add:
+def tdom_to_sdom(sys: Function) -> Add:
     terms = sys.args
     s_terms = []
     for term in terms:
@@ -68,8 +68,8 @@ def sdom_to_tf(s_func: Function) -> Function:
     return y_term / x_term
 
 
-def diffeq_to_tf(diffeq_func: Function) -> Function:
-    s_func = diffeq_to_sdom(diffeq_func)
+def tdom_to_tf(tdom_func: Function) -> Function:
+    s_func = tdom_to_sdom(tdom_func)
     tf = sdom_to_tf(s_func)
     return tf
 

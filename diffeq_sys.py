@@ -11,5 +11,5 @@ print("System (differential eq.):")
 pprint(sys_c)
 
 print("\r\nSystem transfer function (s-domain):")
-tf = diffeq_to_tf(sys_c)
+tf = tdom_to_tf(sys_c)
 pprint(tf)
