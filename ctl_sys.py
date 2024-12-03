@@ -1,5 +1,5 @@
-﻿from sympy import collect, diff, sympify
-from sympy import Basic, Symbol, Function, Add, Eq
+﻿from sympy import collect, diff, sympify, ceiling, zeros, reduce_inequalities
+from sympy import Basic, Symbol, Function, Add, Eq, Matrix
 
 t: Symbol = Symbol('t')
 s: Symbol = Symbol('s')
@@ -121,3 +121,69 @@ def tf_to_tdom(tf: Function) -> Eq:
 
     sys_t = Eq(x_t, y_t)
     return sys_t
+
+
+def sdom_to_zdom(sdom_func: Basic) -> Basic:
+    z2s = (s+1) / (s-1)
+    return sdom_func.subs(z, z2s).simplify()
+
+
+def zdom_to_sdom(zdom_func: Basic) -> Basic:
+    s2z = (z-1) / (z+1)
+    return zdom_func.subs(s, s2z).simplify()
+
+
+def routhhurwitz_table(char_eq_coeffs: list[Basic]) -> Matrix:
+    degree = len(char_eq_coeffs)
+
+    num_columns = int(ceiling(degree / 2))
+    if degree % 2 == 0:
+        num_columns += 1
+
+    table: Matrix = zeros(degree, num_columns)
+
+    # Populate first two rows
+    for c in range(degree):
+        col_idx = c // 2
+        coeff = char_eq_coeffs[c]
+        if c % 2 == 0:
+            table[0, col_idx] = coeff
+        else:
+            table[1, col_idx] = coeff
+
+    # Perform criterion
+    for r in range(2, degree):
+        divisor = table[r - 1, 0]
+
+        tl = table[r - 2, 0]
+        bl = divisor
+
+        for c in range(num_columns):
+            if c >= num_columns - 1:
+                tr = 0
+                br = 0
+            else:
+                tr = table[r - 2, c + 1]
+                br = table[r - 1, c + 1]
+            m = Matrix([[tl, tr], [bl, br]])
+            table[r, c] = -m.det() / divisor
+
+    table.simplify()
+    return table
+
+
+def routhhurwitz_criterion(table: Matrix) -> any:
+    conditions = []
+    for expr in table.col(0):
+        condition = expr > 0
+        try:
+            bool(condition)
+        except:
+            conditions.append(condition)
+
+    return reduce_inequalities(conditions, [kp, ki, kd, k]).simplify()
+
+
+def routhhurwitz_complete(char_eq_coeffs: list[Basic]) -> any:
+    table = routhhurwitz_table(char_eq_coeffs)
+    return routhhurwitz_criterion(table)
