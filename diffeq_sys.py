@@ -10,10 +10,6 @@ sys_c = sys_l - sys_r
 print("System (differential eq.):")
 pprint(sys_c)
 
-s_func = diffeq_to_sdom(sys_c)
-print("\r\nSystem (s-domain):")
-pprint(s_func)
-
-tf = sdom_to_tf(s_func)
 print("\r\nSystem transfer function (s-domain):")
+tf = diffeq_to_tf(sys_c)
 pprint(tf)

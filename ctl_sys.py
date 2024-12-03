@@ -31,7 +31,6 @@ def diffeq_to_sdom(sys: Function) -> Add:
     s_terms = []
     for term in terms:
         coeff = sympify(1)
-        control = sympify(1)
         degree = sympify(0)
 
         if term.is_Mul:
@@ -73,3 +72,8 @@ def diffeq_to_tf(diffeq_func: Function) -> Function:
     s_func = diffeq_to_sdom(diffeq_func)
     tf = sdom_to_tf(s_func)
     return tf
+
+
+def tf_to_sdom(tf: Function) -> Add:
+    print(tf)
+    return None
