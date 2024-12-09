@@ -240,7 +240,6 @@ def zdom_bibo_stable(zdom_func: Expr) -> Expr:
 
 def zdom_stable(zdom_func: Expr) -> bool | Expr:
     _, denominator = get_numerator_and_denominator(zdom_func)
-    print(denominator)
     char_eq = Poly(denominator)
     poles = solve(char_eq, z)
 
