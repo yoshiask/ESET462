@@ -3,7 +3,7 @@
 from sympy import Basic, Symbol, Function, Add, Eq, Matrix, Mul, Expr, Poly, Abs, Heaviside, DiracDelta
 
 t: Symbol = Symbol('t', positive=True, real=True)
-s: Symbol = Symbol('s', positive=True)
+s: Symbol = Symbol('s')
 
 n: Symbol = Symbol('n', positive=True, real=True)
 z: Symbol = Symbol('z')
@@ -90,8 +90,8 @@ def tdom_to_tf(tdom_func: Function) -> Function:
 
 def char_eq_coeffs_from_tf(tf: Expr) -> list[Basic]:
     _, denominator = get_numerator_and_denominator(tf)
-    poly: Poly = Poly(denominator, s, z)
-    return poly.coeffs()
+    poly: Poly = Poly(denominator, s)
+    return poly.all_coeffs()
 
 
 def get_numerator_and_denominator(func: Expr) -> tuple[Symbol, Symbol]:
@@ -276,6 +276,14 @@ def build_feedback(Fs: Expr, Hs: Expr) -> Expr:
     return Fs / (1 + Fs * Hs)
 
 
+def build_parallel(G1: Expr, G2: Expr) -> Expr:
+    return G1 + G2
+
+
+def build_series(G1: Expr, G2: Expr) -> Expr:
+    return G1 * G2
+
+
 def z_transform(ndom_func: Expr) -> Expr:
     return summation(ndom_func * z**-n, (n, -oo, oo)).doit()
 
@@ -334,3 +342,16 @@ def final_value_theorem(Gs: Expr, Xs: Expr) -> Expr:
 def initial_value_theorem(Gs: Expr, Xs: Expr) -> Expr:
     Ys = Gs * Xs
     return limit(s * Ys, s, oo)
+
+
+def get_dc_and_time(Gs: Expr) -> tuple[Expr, Expr]:
+    b, denominator = get_numerator_and_denominator(Gs)
+    poly: Poly = Poly(denominator, s)
+    if poly.degree() != 1:
+        raise ValueError
+
+    a1, a0 = poly.coeffs()
+
+    dc_gain = b / a0
+    time_const = a1 / a0
+    return dc_gain, time_const
