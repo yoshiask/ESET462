@@ -88,6 +88,12 @@ def tdom_to_tf(tdom_func: Function) -> Function:
     return tf
 
 
+def char_eq_coeffs_from_tf(tf: Expr) -> list[Basic]:
+    _, denominator = get_numerator_and_denominator(tf)
+    poly: Poly = Poly(denominator, s, z)
+    return poly.coeffs()
+
+
 def get_numerator_and_denominator(func: Expr) -> tuple[Symbol, Symbol]:
     func = func.expand(numer=True, denom=True)
     one = sympify(1)
