@@ -2,10 +2,10 @@
                    laplace_transform, inverse_laplace_transform, oo, summation)
 from sympy import Basic, Symbol, Function, Add, Eq, Matrix, Mul, Expr, Poly, Abs, Heaviside, DiracDelta
 
-t: Symbol = Symbol('t')
-s: Symbol = Symbol('s')
+t: Symbol = Symbol('t', positive=True, real=True)
+s: Symbol = Symbol('s', positive=True)
 
-n: Symbol = Symbol('n')
+n: Symbol = Symbol('n', positive=True, real=True)
 z: Symbol = Symbol('z')
 
 x: Function = Function('x')
@@ -14,10 +14,10 @@ y: Function = Function('y')
 xt = x(t)
 yt = y(t)
 
-kp: Symbol = Symbol('K_p')
-ki: Symbol = Symbol('K_i')
-kd: Symbol = Symbol('K_d')
-k: Symbol = Symbol('k')
+kp: Symbol = Symbol('K_p', positive=True, real=True)
+ki: Symbol = Symbol('K_i', positive=True, real=True)
+kd: Symbol = Symbol('K_d', positive=True, real=True)
+k: Symbol = Symbol('k', positive=True, real=True)
 
 avail_funcs = [x, y]
 
