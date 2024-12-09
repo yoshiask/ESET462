@@ -1,5 +1,5 @@
-﻿from sympy import (collect, diff, sympify, ceiling, zeros, reduce_inequalities, solve, nan,
-                   laplace_transform, inverse_laplace_transform, oo, summation, sqrt)
+﻿from sympy import (collect, diff, sympify, ceiling, zeros, reduce_inequalities, solve, nan, ln,
+                   laplace_transform, inverse_laplace_transform, oo, summation, sqrt, exp, pi, limit)
 from sympy import Basic, Symbol, Function, Add, Eq, Matrix, Mul, Expr, Poly, Abs, Heaviside, DiracDelta
 
 t: Symbol = Symbol('t', positive=True, real=True)
@@ -293,3 +293,33 @@ def get_damping_form(tf: Expr) -> tuple[Expr, Expr]:
     omega_n = sqrt(sympify(a0) / sympify(a2))
     zeta_n = (a1 / (2 * a2 * omega_n))
     return omega_n, zeta_n
+
+
+def max_overshoot(zeta_n: Expr) -> Expr:
+    return exp(-pi * zeta_n / sqrt(1 - zeta_n**2)).simplify()
+
+
+def delay_time(omega_n: Expr, zeta_n: Expr) -> Expr:
+    return ((1 + 7*zeta_n/10) / omega_n).simplify()
+
+
+def rise_time(omega_n: Expr, zeta_n: Expr) -> Expr:
+    return ((8/10 + 5*zeta_n/2) / omega_n).simplify()
+
+
+def settling_time(omega_n: Expr, zeta_n: Expr, delta_E: Expr = sympify(0.05)) -> Expr:
+    return (-ln(delta_E * sqrt(1 - zeta_n**2)) / (omega_n * zeta_n)).simplify()
+
+
+def steady_state_error(Gs: Expr) -> Expr:
+    return final_value_theorem(Gs, 1/s)
+
+
+def final_value_theorem(Gs: Expr, Xs: Expr) -> Expr:
+    Ys = Gs * Xs
+    return limit(s * Ys, s, 0)
+
+
+def initial_value_theorem(Gs: Expr, Xs: Expr) -> Expr:
+    Ys = Gs * Xs
+    return limit(s * Ys, s, oo)
