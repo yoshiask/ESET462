@@ -1,8 +1,11 @@
-﻿from sympy import collect, diff, sympify, ceiling, zeros, reduce_inequalities, solve, nan
-from sympy import Basic, Symbol, Function, Add, Eq, Matrix, Mul, Expr, Poly, Abs
+﻿from sympy import (collect, diff, sympify, ceiling, zeros, reduce_inequalities, solve, nan,
+                   laplace_transform, inverse_laplace_transform, oo, summation)
+from sympy import Basic, Symbol, Function, Add, Eq, Matrix, Mul, Expr, Poly, Abs, Heaviside, DiracDelta
 
 t: Symbol = Symbol('t')
 s: Symbol = Symbol('s')
+
+n: Symbol = Symbol('n')
 z: Symbol = Symbol('z')
 
 x: Function = Function('x')
@@ -220,6 +223,7 @@ def zdom_bibo_stable(zdom_func: Expr) -> Expr:
 
 
 def zdom_stable(zdom_func: Expr) -> Expr:
+    # TODO: VERIFY
     _, denominator = get_numerator_and_denominator(zdom_func)
     char_eq = Poly(denominator)
     poles = solve(char_eq, z)
@@ -233,3 +237,30 @@ def zdom_stable(zdom_func: Expr) -> Expr:
             conditions.append(condition)
 
     return reduce_inequalities(conditions, [kp, ki, kd, k]).simplify()
+
+
+def laplace(f: Expr) -> Expr:
+    return laplace_transform(f, t, s, noconds=True)
+
+
+def ilaplace(f: Expr) -> Expr:
+    return inverse_laplace_transform(f, s, t, noconds=True)
+
+
+def open_to_closed_loop(GOL: Expr) -> Expr:
+    return GOL / (1 + GOL)
+
+
+def build_closed_loop(Cs: Expr, Ps: Expr) -> Expr:
+    return open_to_closed_loop(Cs * Ps)
+
+
+def z_transform(ndom_func: Expr) -> Expr:
+    return summation(ndom_func * z**-n, (n, -oo, oo)).doit()
+
+
+def heaviside(delay: Expr = 0) -> Heaviside:
+    """
+    Creates a time-domain unit step function.
+    """
+    return Heaviside(t - delay)
