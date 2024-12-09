@@ -1,5 +1,5 @@
-﻿from sympy import collect, diff, sympify, ceiling, zeros, reduce_inequalities
-from sympy import Basic, Symbol, Function, Add, Eq, Matrix
+﻿from sympy import collect, diff, sympify, ceiling, zeros, reduce_inequalities, solve, nan
+from sympy import Basic, Symbol, Function, Add, Eq, Matrix, Mul, Expr, Poly, Abs
 
 t: Symbol = Symbol('t')
 s: Symbol = Symbol('s')
@@ -74,21 +74,33 @@ def tdom_to_tf(tdom_func: Function) -> Function:
     return tf
 
 
-def tf_to_tdom(tf: Function) -> Eq:
-    if not tf.is_Mul:
+def get_numerator_and_denominator(func: Expr) -> tuple[Symbol, Symbol]:
+    func = func.expand(numer=True, denom=True)
+    one = sympify(1)
+
+    if func.is_Pow:
+        b, p = func.args
+        if p > 0:
+            return b, one
+        else:
+            return one,  one/b
+    if not func.is_Mul:
         raise ValueError()
 
-    a, b = tf.args
+    a, b = func.args
 
     if a.is_Pow and a.args[1] < 0:
-        denominator = 1 / a
+        denominator = one / a
         numerator = b
     else:
-        denominator = 1 / b
+        denominator = one / b
         numerator = a
 
-    numerator = numerator.expand()
-    denominator = denominator.expand()
+    return numerator.expand(), denominator.expand()
+
+
+def tf_to_tdom(tf: Function) -> Eq:
+    numerator, denominator = get_numerator_and_denominator(tf)
 
     def _sdom_to_tdom(term: Basic, control: Function, tdom_terms: list[Basic]):
         if term.is_Add:
@@ -123,12 +135,12 @@ def tf_to_tdom(tf: Function) -> Eq:
     return sys_t
 
 
-def sdom_to_zdom(sdom_func: Basic) -> Basic:
+def sdom_to_zdom(sdom_func: Expr) -> Expr:
     z2s = (s+1) / (s-1)
     return sdom_func.subs(z, z2s).simplify()
 
 
-def zdom_to_sdom(zdom_func: Basic) -> Basic:
+def zdom_to_sdom(zdom_func: Expr) -> Expr:
     s2z = (z-1) / (z+1)
     return zdom_func.subs(s, s2z).simplify()
 
@@ -175,6 +187,8 @@ def routhhurwitz_table(char_eq_coeffs: list[Basic]) -> Matrix:
 def routhhurwitz_criterion(table: Matrix) -> any:
     conditions = []
     for expr in table.col(0):
+        if expr == nan:
+            raise ValueError("Marginally stable")
         condition = expr > 0
         try:
             bool(condition)
@@ -187,3 +201,35 @@ def routhhurwitz_criterion(table: Matrix) -> any:
 def routhhurwitz_complete(char_eq_coeffs: list[Basic]) -> any:
     table = routhhurwitz_table(char_eq_coeffs)
     return routhhurwitz_criterion(table)
+
+
+def tf_poles_zeros(tf: Function) -> tuple[list[Basic], list[Basic]]:
+    numerator, denominator = get_numerator_and_denominator(tf)
+    return solve(numerator), solve(denominator)
+
+
+def zdom_bibo_stable(zdom_func: Expr) -> Expr:
+    sdom_func = zdom_to_sdom(zdom_func)
+    _, denominator = get_numerator_and_denominator(sdom_func)
+
+    # Extract coefficients of characteristic equation
+    char_eq = Poly(denominator)
+    char_eq_coeffs = char_eq.all_coeffs()
+
+    return routhhurwitz_complete(char_eq_coeffs)
+
+
+def zdom_stable(zdom_func: Expr) -> Expr:
+    _, denominator = get_numerator_and_denominator(zdom_func)
+    char_eq = Poly(denominator)
+    poles = solve(char_eq, z)
+
+    conditions = []
+    for expr in poles:
+        condition = expr < 1
+        try:
+            bool(condition)
+        except:
+            conditions.append(condition)
+
+    return reduce_inequalities(conditions, [kp, ki, kd, k]).simplify()

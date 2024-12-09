@@ -1,11 +1,14 @@
-﻿from sympy import init_printing, pprint
+﻿from sympy import init_printing, pprint, srepr
 from ctl_sys import *
 
 init_printing()
 
-tf = (2*s + 1) / (s**3 + 2*s**2 + 5)
+tf = (s + 4) / ((s**2+1) * (s+2) * (s+3))
 pprint(tf)
 
-tdom_func = tf_to_tdom(tf)
-print()
-pprint(tdom_func)
+zeros, poles = tf_poles_zeros(tf)
+
+print("\r\nzeros:")
+pprint(zeros)
+print("\r\npoles:")
+pprint(poles)
