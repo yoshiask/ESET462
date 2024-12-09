@@ -264,7 +264,7 @@ def open_to_closed_loop(GOL: Expr) -> Expr:
 
 
 def build_closed_loop(Cs: Expr, Ps: Expr) -> Expr:
-    return open_to_closed_loop(Cs * Ps)
+    return open_to_closed_loop(Cs * Ps).simplify()
 
 
 def build_feedback(Fs: Expr, Hs: Expr) -> Expr:
@@ -293,6 +293,12 @@ def get_damping_form(tf: Expr) -> tuple[Expr, Expr]:
     omega_n = sqrt(sympify(a0) / sympify(a2))
     zeta_n = (a1 / (2 * a2 * omega_n))
     return omega_n, zeta_n
+
+
+def poles_from_damping(omega_n: Expr, zeta_n: Expr) -> tuple[Expr, Expr]:
+    a = -zeta_n * omega_n
+    b = omega_n * sqrt(zeta_n**2 - 1)
+    return a+b, a-b
 
 
 def max_overshoot(zeta_n: Expr) -> Expr:
