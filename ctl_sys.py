@@ -14,10 +14,10 @@ y: Function = Function('y')
 xt = x(t)
 yt = y(t)
 
-kp: Symbol = Symbol('K_p', positive=True, real=True)
-ki: Symbol = Symbol('K_i', positive=True, real=True)
-kd: Symbol = Symbol('K_d', positive=True, real=True)
-k: Symbol = Symbol('k', positive=True, real=True)
+kp: Symbol = Symbol('K_p', real=True)
+ki: Symbol = Symbol('K_i', real=True)
+kd: Symbol = Symbol('K_d', real=True)
+k: Symbol = Symbol('k', real=True)
 
 avail_funcs = [x, y]
 
