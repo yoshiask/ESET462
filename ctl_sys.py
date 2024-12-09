@@ -101,14 +101,13 @@ def get_numerator_and_denominator(func: Expr) -> tuple[Symbol, Symbol]:
     if not func.is_Mul:
         return func, one
 
-    a, b = func.args
-
-    if a.is_Pow and a.args[1] < 0:
-        denominator = one / a
-        numerator = b
-    else:
-        denominator = one / b
-        numerator = a
+    numerator = one
+    denominator = one
+    for arg in func.args:
+        if arg.is_Pow and arg.args[1] < 0:
+            denominator *= arg.args[0]
+        else:
+            numerator *= arg
 
     return numerator.expand(), denominator.expand()
 
