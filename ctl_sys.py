@@ -1,4 +1,4 @@
-﻿from sympy import (collect, diff, sympify, ceiling, zeros, reduce_inequalities, solve, nan, ln,
+﻿from sympy import (collect, diff, sympify, ceiling, zeros, reduce_inequalities, solve, nan, ln, I,
                    laplace_transform, inverse_laplace_transform, oo, summation, sqrt, exp, pi, limit)
 from sympy import Basic, Symbol, Function, Add, Eq, Matrix, Mul, Expr, Poly, Abs, Heaviside, DiracDelta
 
@@ -288,7 +288,7 @@ def build_series(G1: Expr, G2: Expr) -> Expr:
 
 
 def ltf_from_char_eq(char_eq: Expr) -> Expr:
-    collected_k = collect(char_eq, k)
+    collected_k = char_eq.expand().collect(k)
     numerator = sympify(0)
     denominator = sympify(0)
     for term in collected_k.args:
@@ -370,3 +370,15 @@ def get_dc_and_time(Gs: Expr) -> tuple[Expr, Expr]:
     dc_gain = b / a0
     time_const = a1 / a0
     return dc_gain, time_const
+
+
+def tf_from_poles_zeros(zeros: list[Expr], poles: list[Expr]) -> Expr:
+    numerator = sympify(1)
+    for zero in zeros:
+        numerator *= (s - zero)
+
+    denominator = sympify(1)
+    for pole in poles:
+        denominator *= (s - pole)
+
+    return numerator / denominator
