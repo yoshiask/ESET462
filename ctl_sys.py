@@ -69,14 +69,17 @@ def sdom_to_tf(s_func: Function) -> Function:
     left_s, left_control = left.args
     right_s, right_control = right.args
 
-    y_term = left_s
-    x_term = right_s
+    # Undo cross-multiplication
     if right_control == y(s):
-        y_term, x_term = x_term, y_term
+        Ys = left_s
+        Xs = right_s
+    else:
+        Ys = right_s
+        Xs = left_s
 
-    x_term *= -1    # Bring X to other side
+    Xs *= -1    # Bring X to other side
 
-    return y_term / x_term
+    return Ys / Xs
 
 
 def tdom_to_tf(tdom_func: Function) -> Function:
@@ -94,9 +97,9 @@ def get_numerator_and_denominator(func: Expr) -> tuple[Symbol, Symbol]:
         if p > 0:
             return b, one
         else:
-            return one,  one/b
+            return one,  b
     if not func.is_Mul:
-        raise ValueError()
+        return func, one
 
     a, b = func.args
 
@@ -230,17 +233,18 @@ def zdom_bibo_stable(zdom_func: Expr) -> Expr:
     return routhhurwitz_complete(char_eq_coeffs)
 
 
-def zdom_stable(zdom_func: Expr) -> Expr:
-    # TODO: VERIFY
+def zdom_stable(zdom_func: Expr) -> bool | Expr:
     _, denominator = get_numerator_and_denominator(zdom_func)
+    print(denominator)
     char_eq = Poly(denominator)
     poles = solve(char_eq, z)
 
     conditions = []
     for expr in poles:
-        condition = expr < 1
+        condition = Abs(expr) < 1
         try:
-            bool(condition)
+            if not bool(condition):
+                return False
         except:
             conditions.append(condition)
 
