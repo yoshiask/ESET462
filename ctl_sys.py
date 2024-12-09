@@ -30,7 +30,13 @@ def diff_n(f: Function, n: int) -> Function:
 
 
 def tdom_to_sdom(sys: Function) -> Add:
-    terms = sys.args
+    terms = []
+    if sys.is_Equality:
+        terms.extend(sys.args[0].args)
+        terms.extend([-arg for arg in sys.args[1].args])
+    else:
+        terms = sys.args
+
     s_terms = []
     for term in terms:
         coeff = sympify(1)
@@ -67,6 +73,8 @@ def sdom_to_tf(s_func: Function) -> Function:
     x_term = right_s
     if right_control == y(s):
         y_term, x_term = x_term, y_term
+
+    x_term *= -1    # Bring X to other side
 
     return y_term / x_term
 
