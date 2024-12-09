@@ -271,6 +271,10 @@ def build_closed_loop(Cs: Expr, Ps: Expr) -> Expr:
     return open_to_closed_loop(Cs * Ps).simplify()
 
 
+def build_loop_tf(Cs: Expr, Ps: Expr, Hs: Expr) -> Expr:
+    return Cs * Ps * Hs
+
+
 def build_feedback(Fs: Expr, Hs: Expr) -> Expr:
     return Fs / (1 + Fs * Hs)
 
@@ -281,6 +285,18 @@ def build_parallel(G1: Expr, G2: Expr) -> Expr:
 
 def build_series(G1: Expr, G2: Expr) -> Expr:
     return G1 * G2
+
+
+def ltf_from_char_eq(char_eq: Expr) -> Expr:
+    collected_k = collect(char_eq, k)
+    numerator = sympify(0)
+    denominator = sympify(0)
+    for term in collected_k.args:
+        if term.is_Mul and term.args[0] == k:
+            numerator += term.args[1]
+        else:
+            denominator += term
+    return numerator / denominator
 
 
 def z_transform(ndom_func: Expr) -> Expr:
