@@ -1,14 +1,11 @@
-﻿from sympy import init_printing, pprint, srepr
+﻿from sympy import init_printing, pprint, srepr, Heaviside, symbols
 from ctl_sys import *
 
 init_printing()
 
-tf = (s + 4) / ((s**2+1) * (s+2) * (s+3))
-pprint(tf)
+Gs = 1 / (s**6 + 2*s**5 + 8*s**4 + 20*s**2 + 16*s + 16)
+coeffs = char_eq_coeffs_from_tf(Gs)
+pprint(coeffs)
 
-zeros, poles = tf_poles_zeros(tf)
-
-print("\r\nzeros:")
-pprint(zeros)
-print("\r\npoles:")
-pprint(poles)
+table = routhhurwitz_table(coeffs)
+pprint(table)
